@@ -47,6 +47,11 @@ class MyFirstGUI:
         self.new_button.bind("<Leave>", lambda event, h=self.new_button: h.configure(bg='white', fg='red'))
 
 
+        #Load Game Option Button
+        self.load_button = Button(master, text="Load Game",bg='white', font=self.cont,command=self.LoadGame,fg='red',borderwidth=5,relief='solid')
+        self.load_button.pack(pady=8)
+        self.load_button.bind("<Enter>", lambda event, h=self.load_button: h.configure(bg='black', fg='white'))
+        self.load_button.bind("<Leave>", lambda event, h=self.load_button: h.configure(bg='white', fg='red'))
 
         #Close Game Option Button
         self.close_button = Button(master, font=self.cont,image=self.qtb, command=master.quit,fg='red')
@@ -247,7 +252,52 @@ class MyFirstGUI:
             print('Failed to Load Game: ' + str(e))
 
 
+    #Load Game Functionalit
+    def LoadGame(self):
+        print("Loading ..... ")
+        db = MySQLdb.connect("localhost", "root", "", "game")
+        print("Connected")
 
+        # prepare a cursor object using cursor() method
+        cursor = db.cursor()
+
+        sql = "SELECT * FROM snapshot;"
+        try:
+            # Execute the SQL command
+            cursor.execute(sql)
+            # Fetch all the rows in a list of lists.
+            results = cursor.fetchall()
+            #Create a Frmae and listbox
+            top = Toplevel()
+            top.title("Load Game")
+            top.geometry("500x550")
+            label = Label(top, text="Select Game To Load", font=self.game,
+                          fg='blue', borderwidth=2, relief='solid', padx=4, pady=4)
+            label.pack(padx=5,pady=5)
+
+            gameList = Listbox(top,font=self.loadFont,width=50)
+            for row in results:
+                onerow = ""
+                game_id = row[0]
+                level = row[1]
+                date = row[2]
+                # Now print fetched result
+                onerow = "Id -> " + str(game_id) + " || " + "Level -> "+str(level) + " || " + "Date -> "+str(date)
+                print(onerow)
+                gameList.insert(END, onerow)
+            self.OneDone = [0,0,0,0,0,0]
+            self.randomBt = [0,0,0,0,0,0]
+            gameList.bind("<<ListboxSelect>>",lambda event, obj=gameList:self.handleSelect(gameList))
+            gameList.pack(padx=5, pady=5)
+            load_button = Button(top, text="Load", bg='white', command=self.create_Level1, font=self.cont, fg='red',
+                                 borderwidth=5, relief='solid')
+            load_button.pack(padx=5,pady=5)
+        except Exception, e:
+                print('Failed to upload to ftp: '+ str(e))
+
+
+        # disconnect from server
+        db.close()
 
 
 root = Tk()
